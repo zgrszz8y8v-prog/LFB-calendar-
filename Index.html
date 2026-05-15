@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LFB Shift Calendar</title>
+    <!-- Makes it feel like a real app -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    
+    <style>
+        :root {
+            --red-watch: #d32f2f;
+            --white-watch: #ffffff;
+            --blue-watch: #1976d2;
+            --green-watch: #388e3c;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 { margin-top: 20px; color: #1c1e21; }
+
+        .calendar-container {
+            background: white;
+            width: 95%;
+            max-width: 400px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            color: #65676b;
+            margin-bottom: 10px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            border: 1px solid #eee;
+        }
+
+        /* Watch Styling */
+        .red { background-color: var(--red-watch); color: white; }
+        .white { background-color: var(--white-watch); color: black; border: 1px solid #ccc; }
+        .blue { background-color: var(--blue-watch); color: white; }
+        .green { background-color: var(--green-watch); color: white; }
+        .off { background-color: #f9f9f9; color: #ccc; border: none; }
+
+        .watch-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+        
+        .today { border: 3px solid #000 !important; }
+    </style>
+</head>
+<body>
+
+    <h2>May 2026</h2>
+
+    <div class="calendar-container">
+        <div class="header-grid">
+            <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+        </div>
+        <div id="calendar" class="calendar-grid"></div>
+    </div>
+
+    <script>
+        // Updated Anchor: May 15, 2026 is Green Watch Day 1
+        // In the 8-day cycle, Green Day 1 is index 6
+        const anchorDate = new Date(2026, 4, 15); 
+        const calendarElement = document.getElementById('calendar');
+
+        function getShift(date) {
+            const diffTime = date - anchorDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            // The 8-day cycle: 0,1=Red | 2,3=White | 4,5=Blue | 6,7=Green
+            // We use +6 because today is Green Day 1
+            let dayInCycle = (diffDays + 6) % 8;
+            if (dayInCycle < 0) dayInCycle += 8;
+
+            if (dayInCycle < 2) return { class: 'red', label: 'Red' };
+            if (dayInCycle < 4) return { class: 'white', label: 'White' };
+            if (dayInCycle < 6) return { class: 'blue', label: 'Blue' };
+            return { class: 'green', label: 'Green' };
+        }
+
+        // Generate the month of May 2026
+        // May 1st 2026 was a Friday (starts at index 4 if Monday is 0)
+        const paddingDays = 4; 
+        for (let p = 0; p < paddingDays; p++) {
+            const empty = document.createElement('div');
+            empty.className = 'day-cell off';
+            calendarElement.appendChild(empty);
+        }
+
+        for (let i = 1; i <= 31; i++) {
+            const current = new Date(2026, 4, i);
+            const shift = getShift(current);
+            
+            const cell = document.createElement('div');
+            cell.className = `day-cell ${shift.class}`;
+            
+            // Highlight today
+            if (i === 15) cell.classList.add('today');
+
+            cell.innerHTML = `<div>${i}</div><div class="watch-label">${shift.label}</div>`;
+            calendarElement.appendChild(cell);
+        }
+    </script>
+</body>
+</html>
